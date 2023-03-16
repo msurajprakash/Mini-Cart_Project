@@ -3,42 +3,41 @@ import Navbar from './Navbar'
 import Cart from './Cart'
 import Hero from './Hero'
 import Footer from './Footer'
+import firebase from 'firebase/compat/app';
 
 class App extends React.Component {
   constructor(){
     super();
     this.state = {
-      products: [
-        {
-          name: 'Camera1',
-          price: 50000,
-          qty: 0,
-          img: 'https://images.unsplash.com/photo-1580707221190-bd94d9087b7f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80',
-          id: 1
-        },
-        {
-          name: 'Camera2',
-          price: 75000,
-          qty: 0,
-          img: 'https://images.unsplash.com/photo-1625571281451-eb482aa4dd44?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80',
-          id: 2
-        },
-        {
-          name: 'Camera3',
-          price: 62000,
-          qty: 0,
-          img: 'https://images.unsplash.com/photo-1621985499238-698dfd45b017?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80',
-          id: 3
-        },
-        {
-          name: 'Camera4',
-          price: 105000,
-          qty: 0,
-          img: 'https://images.unsplash.com/photo-1625571281240-694bfa82e4c9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80',
-          id: 4
-        }
-      ]
+      products: [],
+      loading: true
     }
+    this.db = firebase.firestore()
+  }
+
+  componentDidMount (){
+    this.db
+      .collection('products')
+      .onSnapshot((snapshot) => {
+
+        snapshot.docs.map((doc) =>{
+          return doc.data();
+        })
+
+        const products = snapshot.docs.map((doc) => {
+          const data = doc.data();
+
+          data['id'] = doc.id;
+          return data;
+        })
+
+        this.setState({
+          products,
+          loading: false
+        })
+        
+      })
+
   }
 
   handleIncreaceQuantity = (product) => {
@@ -99,7 +98,7 @@ class App extends React.Component {
   }
 
   render() {
-    const {products} = this.state;
+    const {products, loading} = this.state;
     return (
       <div>
         <Navbar 
@@ -112,6 +111,7 @@ class App extends React.Component {
           onDecreaseQuantity={this.handleDecreaceQuantity}
           onDeleteProduct={this.onDeleteQuantity}
         />
+        {loading && <h2>Loading page ...</h2>}
         <Footer 
           totalAmount={this.getTotalAmount}
         />
